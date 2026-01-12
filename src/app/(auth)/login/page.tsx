@@ -1,32 +1,15 @@
-// app/(auth)/login/page.tsx
-'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { Box, Container, Typography, Link } from '@mui/material';
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import AuthCard from '@/components/auth/AuthCard';
+import AuthCard from '@/src/components/auth/AuthCard'; 
+import GoogleSignInWrapper from '@/src/components/auth/GoogleSignInWrapper'; 
+
+export const metadata = {
+  title: 'Sign In - Sheria Platform',
+  description: 'Sign in to access AI-powered governance tools',
+};
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setLoading(true);
-      // Option A: Redirect directly (recommended for most cases)
-      window.location.href = '/api/auth/google';
-
-      // Option B: If you want to handle with fetch + redirect manually
-      // const res = await fetch('/api/auth/google', { method: 'GET' });
-      // const { url } = await res.json();
-      // window.location.href = url;
-    } catch (error) {
-      console.error('Google sign in failed:', error);
-      setLoading(false);
-    }
-  };
-
   return (
     <Container maxWidth="lg">
       <Box
@@ -40,7 +23,7 @@ export default function LoginPage() {
           title="Welcome back"
           subtitle="Sign in to continue to Sheria Governance Platform"
           footer={
-            <Box textAlign="center">
+            <Box textAlign="center" sx={{ mt: 3 }}>
               <Typography variant="body2" color="text.secondary">
                 Don't have an account?{' '}
                 <Link href="/signup" color="primary" underline="hover">
@@ -50,12 +33,10 @@ export default function LoginPage() {
             </Box>
           }
         >
-          <Box sx={{ mt: 2, mb: 3 }}>
-            <GoogleSignInButton
-              onClick={handleGoogleSignIn}
-              loading={loading}
-              mode="signin"
-            />
+          <Box sx={{ mt: 4, mb: 2 }}>
+            <Suspense fallback={<div>Loading sign-in options...</div>}>
+              <GoogleSignInWrapper mode="signin" />
+            </Suspense>
           </Box>
         </AuthCard>
       </Box>

@@ -1,22 +1,14 @@
-// app/(auth)/signup/page.tsx
-'use client';
-
+import { Suspense } from 'react';
 import { Box, Container, Typography, Link } from '@mui/material';
-import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
-import AuthCard from '@/components/auth/AuthCard';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import AuthCard from '@/src/components/auth/AuthCard';
+import GoogleSignInWrapper from '@/src/components/auth/GoogleSignInWrapper';
+
+export const metadata = {
+  title: 'Sign Up - Sheria Platform',
+  description: 'Create your account on Sheria Governance Platform',
+};
 
 export default function SignUpPage() {
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleGoogleSignUp = () => {
-    setLoading(true);
-    window.location.href = '/api/auth/google?mode=signup';
-    // or same endpoint — your backend can decide based on redirect uri / state
-  };
-
   return (
     <Container maxWidth="lg">
       <Box
@@ -30,7 +22,7 @@ export default function SignUpPage() {
           title="Get started with Sheria"
           subtitle="Create your governance platform account"
           footer={
-            <Box textAlign="center">
+            <Box textAlign="center" sx={{ mt: 3 }}>
               <Typography variant="body2" color="text.secondary">
                 Already have an account?{' '}
                 <Link href="/login" color="primary" underline="hover">
@@ -40,12 +32,10 @@ export default function SignUpPage() {
             </Box>
           }
         >
-          <Box sx={{ mt: 2, mb: 3 }}>
-            <GoogleSignInButton
-              onClick={handleGoogleSignUp}
-              loading={loading}
-              mode="signup"
-            />
+          <Box sx={{ mt: 4, mb: 2 }}>
+            <Suspense fallback={<div>Loading sign-up options...</div>}>
+              <GoogleSignInWrapper mode="signup" />
+            </Suspense>
           </Box>
         </AuthCard>
       </Box>
