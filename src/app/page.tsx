@@ -1,17 +1,15 @@
-import { redirect } from "next/navigation";
-import LoginPage from "./(auth)/login/page";
+import { redirect } from 'next/navigation'
+import LoginPage from './(auth)/login/page';
 
-async function getCurrentUser() {
-  const isAuthenticated = false;
+async function isAuthenticated() {
 
-  return isAuthenticated;
+  return false
 }
-
 export default async function Home() {
-  const isAuthenticated = await getCurrentUser();
+  const authenticated = await isAuthenticated()
 
-  if (isAuthenticated) {
-    redirect("/dashboard");
+  if (authenticated) {
+    redirect('/dashboard')
   }
 
   return <LoginPage />;
