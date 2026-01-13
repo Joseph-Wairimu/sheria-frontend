@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   web:
-    container_name: erits
+    container_name: sheria
     restart: unless-stopped
     build:
       context: ./
