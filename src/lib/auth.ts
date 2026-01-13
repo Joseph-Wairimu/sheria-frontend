@@ -11,6 +11,7 @@ export async function exchangeToken() {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'include',
             cache: 'no-store',
         }
     )
