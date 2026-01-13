@@ -1,27 +1,28 @@
-import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import LoginPage from './(auth)/login/page'
-import { exchangeToken } from '@/src/lib/auth'
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import LoginPage from "./(auth)/login/page";
+import { exchangeToken } from "@/src/lib/auth";
 
 async function isAuthenticated() {
-  const cookieStore = cookies()
-  return Boolean(cookieStore.get('access_token')?.value)
+  const cookieStore = cookies();
+  return Boolean(cookieStore.get("access_token")?.value);
 }
 
 export default async function Home() {
-  const cookieStore = cookies()
+  const cookieStore = cookies();
 
-  const accessToken = cookieStore.get('access_token')
+  const accessToken = cookieStore.get("access_token");
 
   if (!accessToken) {
-    await exchangeToken()
+    console.log("start Token Hit:");
+    await exchangeToken();
   }
 
-  const authenticated = await isAuthenticated()
+  const authenticated = await isAuthenticated();
 
   if (authenticated) {
-    redirect('/dashboard')
+    redirect("/dashboard");
   }
 
-  return <LoginPage />
+  return <LoginPage />;
 }

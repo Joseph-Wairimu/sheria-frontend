@@ -2,10 +2,10 @@ import { env } from 'next-runtime-env'
 import { cookies } from 'next/headers'
 
 export async function exchangeToken() {
-
+    console.log('Exchange Token Hit:');
     const AUTH_BASE_URL = env('AUTH_BASE_URL')
     const res = await fetch(
-        `${AUTH_BASE_URL}/auth/tokens/exchange`,
+        `${AUTH_BASE_URL}/auth/tokens/exchange/`,
         {
             method: 'POST',
             headers: {
@@ -15,6 +15,7 @@ export async function exchangeToken() {
             cache: 'no-store',
         }
     )
+    console.log('Exchange Token Response:');
     console.log('Exchange Token Response:', res);
     if (!res.ok) {
         return null
