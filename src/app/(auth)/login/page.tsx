@@ -3,35 +3,13 @@ import { Suspense } from 'react';
 import { Box, Container, Typography, Link } from '@mui/material';
 import AuthCard from '@/src/components/auth/AuthCard'; 
 import GoogleSignInWrapper from '@/src/components/auth/GoogleSignInWrapper'; 
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { exchangeToken } from "@/src/lib/auth";
 
-async function isAuthenticated() {
-  const cookieStore = cookies();
-  return Boolean(cookieStore.get("access_token")?.value);
-}
-export const metadata = {
-  title: 'Sign In - Sheria Platform',
-  description: 'Sign in to access AI-powered governance tools',
-};
+// export const metadata = {
+//   title: 'Sign In - Sheria Platform',
+//   description: 'Sign in to access AI-powered governance tools',
+// };
 
-export default async function LoginPage() {
- const cookieStore = cookies();
-
-  const accessToken = cookieStore.get("access_token");
-
-  if (!accessToken) {
-    console.log("start Token Hit:");
-    await exchangeToken();
-  }
-
-  const authenticated = await isAuthenticated();
-
-  if (authenticated) {
-    redirect("/dashboard");
-  }
-
+export default function LoginPage() {
   return (
     <Container maxWidth="lg">
       <Box
