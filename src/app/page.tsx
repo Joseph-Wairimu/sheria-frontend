@@ -28,20 +28,34 @@ export default function Home() {
 
       try {
         const NEXT_PUBLIC_AUTH_BASE_URL = env("NEXT_PUBLIC_AUTH_BASE_URL");
-        if (!NEXT_PUBLIC_AUTH_BASE_URL) throw new Error("Missing NEXT_PUBLIC_AUTH_BASE_URL");
+        if (!NEXT_PUBLIC_AUTH_BASE_URL)
+          throw new Error("Missing NEXT_PUBLIC_AUTH_BASE_URL");
 
-        const res = await fetch(`${NEXT_PUBLIC_AUTH_BASE_URL}/auth/tokens/exchange`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const res = await fetch(
+          `${NEXT_PUBLIC_AUTH_BASE_URL}/auth/tokens/exchange`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (res.ok) {
           const data = await res.json();
           console.log("Exchange success:", data);
 
+          const token = data?.details?.token;
+          if (!token) {
+            console.error("No token in exchange response");
+            setIsChecking(false);
+            return;
+          }
+          document.cookie = `access_token=${token}; expires=${new Date(
+            Date.now() + 1000 * 60 * 60 * 24 * 30
+          ).toUTCString()}; path=/`;
+          setIsChecking(false);
           const newToken = getCookie("access_token");
           if (newToken) {
             router.replace("/dashboard");
