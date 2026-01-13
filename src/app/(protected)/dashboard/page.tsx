@@ -1,6 +1,3 @@
-
-'use client';
-
 import {
   Box,
   Grid,
@@ -26,7 +23,8 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import StatCard from '@/src/components/common/StatCard';
-
+import { redirect } from "next/navigation";
+import { cookies } from 'next/headers';
 
 export default function HomePage() {
   const router = useRouter();
@@ -72,7 +70,12 @@ export default function HomePage() {
     { title: 'Active Users', value: '12,459', icon: People, color: '#f59e0b' },
     { title: 'Avg Response Time', value: '0.8s', icon: Speed, color: '#ec4899' },
   ];
+  const accessToken = cookies().get("access_token");
+  console.log("accessToken", accessToken);
 
+  if (!accessToken) {
+    redirect("/login");
+  }
   return (
     <Box>
       {/* Hero Section */}
