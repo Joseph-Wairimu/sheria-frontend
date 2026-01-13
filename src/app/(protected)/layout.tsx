@@ -14,6 +14,7 @@ export default async function ProtectedLayout({
     return undefined;
   }
   const accessToken = getCookie("access_token");
+  console.log("ProtectedLayout accessToken:", accessToken);
   if (!accessToken) {
     redirect("/login");
   }
