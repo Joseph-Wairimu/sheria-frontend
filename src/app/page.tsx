@@ -27,10 +27,10 @@ export default function Home() {
       }
 
       try {
-        const AUTH_BASE_URL = env("AUTH_BASE_URL");
-        if (!AUTH_BASE_URL) throw new Error("Missing AUTH_BASE_URL");
+        const NEXT_PUBLIC_AUTH_BASE_URL = env("NEXT_PUBLIC_AUTH_BASE_URL");
+        if (!NEXT_PUBLIC_AUTH_BASE_URL) throw new Error("Missing NEXT_PUBLIC_AUTH_BASE_URL");
 
-        const res = await fetch(`${AUTH_BASE_URL}/auth/tokens/exchange`, {
+        const res = await fetch(`${NEXT_PUBLIC_AUTH_BASE_URL}/auth/tokens/exchange`, {
           method: "POST",
           credentials: "include",
           headers: {
