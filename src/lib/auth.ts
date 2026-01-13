@@ -5,7 +5,7 @@ export async function exchangeToken() {
     console.log('Exchange Token Hit:');
     const AUTH_BASE_URL = env('AUTH_BASE_URL')
     const res = await fetch(
-        `${AUTH_BASE_URL}/auth/tokens/exchange/`,
+        `${AUTH_BASE_URL}/auth/tokens/exchange`,
         {
             method: 'POST',
             headers: {
