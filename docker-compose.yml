@@ -1,0 +1,19 @@
+version: "3.5"
+services:
+  web:
+    container_name: erits
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    networks:
+      - custom
+networks:
+  custom:
+    driver: bridge
