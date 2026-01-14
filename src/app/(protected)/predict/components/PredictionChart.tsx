@@ -1,4 +1,4 @@
-
+// components/PredictionChart.tsx
 'use client';
 
 import { Card, CardContent, Typography } from '@mui/material';
@@ -14,37 +14,40 @@ import {
 } from 'recharts';
 
 interface PredictionChartProps {
-  data: Array<{ month: string; value: number; predicted: number }>;
+  data: Array<{ month: string; actual: number; predicted: number }>;
 }
 
 export default function PredictionChart({ data }: PredictionChartProps) {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Predictions Timeline
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+          Forecasted Case Timelines
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Case resolution duration based on complexity, history, and court workload
         </Typography>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
-            <YAxis />
+            <YAxis label={{ value: 'Days', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
             <Legend />
             <Line
               type="monotone"
-              dataKey="value"
+              dataKey="actual"
               stroke="#2563eb"
-              name="Actual"
               strokeWidth={2}
+              name="Actual Duration"
             />
             <Line
               type="monotone"
               dataKey="predicted"
-              stroke="#8b5cf6"
+              stroke="#7c3aed"
               strokeDasharray="5 5"
-              name="Predicted"
               strokeWidth={2}
+              name="Predicted Duration"
             />
           </LineChart>
         </ResponsiveContainer>
