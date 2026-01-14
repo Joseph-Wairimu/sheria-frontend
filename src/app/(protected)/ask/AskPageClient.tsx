@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useRef, useEffect, useTransition } from "react";
 import {
   Box,
   Card,
@@ -19,17 +19,14 @@ import {
   Divider,
   CircularProgress,
   MenuItem,
-} from '@mui/material';
-import { Send, SmartToy, Person, Menu, Add } from '@mui/icons-material';
-import {
-  fetchConversations,
-  fetchConversationMessages,
-  sendChatMessage,
-} from './actions';
+} from "@mui/material";
+import { Send, SmartToy, Person, Menu, Add } from "@mui/icons-material";
+import { fetchConversations, fetchConversationMessages } from "./actions";
+import { sendChatMessage } from "./chat-client";
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
   language?: string;
@@ -61,16 +58,16 @@ export default function AskPageClient({
 }: AskPageClientProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: '1',
-      role: 'assistant',
+      id: "1",
+      role: "assistant",
       content:
-        'Jambo! I\'m Sheria Ask, your AI assistant. How can I help you today?',
+        "Jambo! I'm Sheria Ask, your AI assistant. How can I help you today?",
       timestamp: new Date(),
-      language: 'en',
+      language: "en",
     },
   ]);
-  const [input, setInput] = useState('');
-  const [language, setLanguage] = useState('en');
+  const [input, setInput] = useState("");
+  const [language, setLanguage] = useState("en");
   const [isLoading, setIsLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -84,7 +81,7 @@ export default function AskPageClient({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -110,12 +107,13 @@ export default function AskPageClient({
     setDrawerOpen(false);
     startTransition(async () => {
       const msgs = await fetchConversationMessages(conversationId);
+      console.log("Loaded messages for conversation:", msgs);
       const loadedMessages = msgs.map((msg: any) => ({
         id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        timestamp: new Date(msg.timestamp),
-        sources: msg.sources,
+        role: msg?.content?.role,
+        content: msg?.content?.text,
+        timestamp: new Date(msg.created_at),
+        sources: msg.sources || [],
       }));
       setMessages(loadedMessages);
     });
@@ -125,30 +123,29 @@ export default function AskPageClient({
     setCurrentConversationId(null);
     setMessages([
       {
-        id: '1',
-        role: 'assistant',
+        id: "1",
+        role: "assistant",
         content:
-          'Jambo! I\'m Sheria Ask, your AI assistant. How can I help you today?',
+          "Jambo! I'm Sheria Ask, your AI assistant. How can I help you today?",
         timestamp: new Date(),
-        language: 'en',
+        language: "en",
       },
     ]);
     setDrawerOpen(false);
   };
-
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      role: 'user',
+      role: "user",
       content: input,
       timestamp: new Date(),
       language: language,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     abortControllerRef.current = new AbortController();
@@ -156,8 +153,8 @@ export default function AskPageClient({
     const assistantMessageId = (Date.now() + 1).toString();
     const assistantMessage: ChatMessage = {
       id: assistantMessageId,
-      role: 'assistant',
-      content: '',
+      role: "assistant",
+      content: "",
       timestamp: new Date(),
       language: language,
       isStreaming: true,
@@ -166,27 +163,24 @@ export default function AskPageClient({
     setMessages((prev) => [...prev, assistantMessage]);
 
     try {
-      const stream = await sendChatMessage(input, currentConversationId);
+      const { stream, conversationId: newConversationId } =
+        await sendChatMessage(input, currentConversationId);
+
+      if (newConversationId && !currentConversationId) {
+        setCurrentConversationId(newConversationId);
+      }
+
       const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      let fullContent = '';
+      let fullContent = "";
 
       while (true) {
         const { done, value } = await reader.read();
 
         if (done) {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, isStreaming: false }
-                : msg
-            )
-          );
           break;
         }
 
-        const chunk = decoder.decode(value, { stream: true });
-        fullContent += chunk;
+        fullContent += value;
 
         setMessages((prev) =>
           prev.map((msg) =>
@@ -198,18 +192,24 @@ export default function AskPageClient({
 
         scrollToBottom();
       }
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === assistantMessageId ? { ...msg, isStreaming: false } : msg
+        )
+      );
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Request was cancelled');
+      console.error("Streaming failed:", error);
+
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Request was cancelled");
       } else {
-        console.error('Streaming error:', error);
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessageId
               ? {
                   ...msg,
-                  content:
-                    'I encountered an error processing your request. Please try again.',
+                  content: "Error processing your request. Please try again.",
                   isStreaming: false,
                 }
               : msg
@@ -220,9 +220,8 @@ export default function AskPageClient({
       setIsLoading(false);
     }
   };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -260,12 +259,12 @@ export default function AskPageClient({
 
   return (
     <>
-      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <CardContent
           sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
             p: 0,
           }}
         >
@@ -273,8 +272,8 @@ export default function AskPageClient({
             sx={{
               p: 2,
               borderBottom: 1,
-              borderColor: 'divider',
-              display: 'flex',
+              borderColor: "divider",
+              display: "flex",
               gap: 1,
               flexShrink: 0,
             }}
@@ -299,9 +298,9 @@ export default function AskPageClient({
           <Box
             sx={{
               flex: 1,
-              overflow: 'auto',
+              overflow: "auto",
               p: 3,
-              bgcolor: 'grey.50',
+              bgcolor: "grey.50",
               minHeight: 0,
             }}
           >
@@ -309,32 +308,32 @@ export default function AskPageClient({
               <Box
                 key={message.id}
                 sx={{
-                  display: 'flex',
+                  display: "flex",
                   justifyContent:
-                    message.role === 'user' ? 'flex-end' : 'flex-start',
+                    message.role === "user" ? "flex-end" : "flex-start",
                   mb: 2,
                 }}
               >
                 <Box
                   sx={{
-                    display: 'flex',
+                    display: "flex",
                     gap: 1,
-                    maxWidth: '70%',
+                    maxWidth: "70%",
                     flexDirection:
-                      message.role === 'user' ? 'row-reverse' : 'row',
-                    alignItems: 'flex-end',
+                      message.role === "user" ? "row-reverse" : "row",
+                    alignItems: "flex-end",
                   }}
                 >
                   <Avatar
                     sx={{
                       bgcolor:
-                        message.role === 'user' ? 'grey.400' : 'primary.main',
+                        message.role === "user" ? "grey.400" : "primary.main",
                       width: 32,
                       height: 32,
                       flexShrink: 0,
                     }}
                   >
-                    {message.role === 'user' ? (
+                    {message.role === "user" ? (
                       <Person fontSize="small" />
                     ) : (
                       <SmartToy fontSize="small" />
@@ -346,23 +345,22 @@ export default function AskPageClient({
                     sx={{
                       p: 2,
                       bgcolor:
-                        message.role === 'user'
-                          ? 'primary.main'
-                          : 'background.paper',
-                      color:
-                        message.role === 'user' ? 'white' : 'text.primary',
-                      position: 'relative',
+                        message.role === "user"
+                          ? "primary.main"
+                          : "background.paper",
+                      color: message.role === "user" ? "white" : "text.primary",
+                      position: "relative",
                       minHeight: 44,
-                      display: 'flex',
-                      alignItems: 'center',
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
-                    <Box sx={{ width: '100%' }}>
+                    <Box sx={{ width: "100%" }}>
                       <Typography
                         variant="body1"
                         sx={{
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-word',
+                          whiteSpace: "pre-wrap",
+                          wordBreak: "break-word",
                         }}
                       >
                         {message.content}
@@ -370,12 +368,12 @@ export default function AskPageClient({
                           <Box
                             component="span"
                             sx={{
-                              display: 'inline-block',
+                              display: "inline-block",
                               ml: 0.5,
-                              animation: 'blink 1s infinite',
-                              '@keyframes blink': {
-                                '0%, 49%': { opacity: 1 },
-                                '50%, 100%': { opacity: 0 },
+                              animation: "blink 1s infinite",
+                              "@keyframes blink": {
+                                "0%, 49%": { opacity: 1 },
+                                "50%, 100%": { opacity: 0 },
                               },
                             }}
                           >
@@ -390,20 +388,20 @@ export default function AskPageClient({
                             mt: 2,
                             pt: 2,
                             borderTop: 1,
-                            borderColor: 'divider',
+                            borderColor: "divider",
                           }}
                         >
                           <Typography
                             variant="caption"
-                            sx={{ display: 'block', mb: 1, opacity: 0.7 }}
+                            sx={{ display: "block", mb: 1, opacity: 0.7 }}
                           >
                             Sources:
                           </Typography>
-                          {message.sources.map((source, i) => (
+                          {message?.sources?.map((source, i) => (
                             <Typography
                               key={i}
                               variant="caption"
-                              sx={{ display: 'block', opacity: 0.8 }}
+                              sx={{ display: "block", opacity: 0.8 }}
                             >
                               • {source}
                             </Typography>
@@ -413,11 +411,11 @@ export default function AskPageClient({
 
                       <Typography
                         variant="caption"
-                        sx={{ display: 'block', mt: 1, opacity: 0.7 }}
+                        sx={{ display: "block", mt: 1, opacity: 0.7 }}
                       >
                         {isHydrated
                           ? message.timestamp.toLocaleTimeString()
-                          : ''}
+                          : ""}
                       </Typography>
                     </Box>
                   </Paper>
@@ -431,10 +429,10 @@ export default function AskPageClient({
             elevation={3}
             sx={{
               p: 2,
-              display: 'flex',
+              display: "flex",
               gap: 1,
               borderTop: 1,
-              borderColor: 'divider',
+              borderColor: "divider",
               flexShrink: 0,
             }}
           >
@@ -454,9 +452,9 @@ export default function AskPageClient({
                 color="error"
                 onClick={handleCancel}
                 sx={{
-                  bgcolor: 'error.main',
-                  color: 'white',
-                  '&:hover': { bgcolor: 'error.dark' },
+                  bgcolor: "error.main",
+                  color: "white",
+                  "&:hover": { bgcolor: "error.dark" },
                 }}
                 title="Cancel request"
               >
@@ -468,10 +466,10 @@ export default function AskPageClient({
                 onClick={handleSend}
                 disabled={!input.trim()}
                 sx={{
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
+                  bgcolor: "primary.main",
+                  color: "white",
+                  "&:hover": { bgcolor: "primary.dark" },
+                  "&.Mui-disabled": { bgcolor: "action.disabledBackground" },
                 }}
               >
                 <Send />
@@ -486,7 +484,7 @@ export default function AskPageClient({
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         sx={{
-          '& .MuiDrawer-paper': {
+          "& .MuiDrawer-paper": {
             width: 300,
             mt: 8,
           },
@@ -508,7 +506,7 @@ export default function AskPageClient({
         </Box>
         <Divider />
         {conversationsLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
             <CircularProgress size={24} />
           </Box>
         ) : (
@@ -518,8 +516,8 @@ export default function AskPageClient({
                 <ListItemText
                   primary="No conversations yet"
                   primaryTypographyProps={{
-                    variant: 'body2',
-                    color: 'textSecondary',
+                    variant: "body2",
+                    color: "textSecondary",
                   }}
                 />
               </ListItem>
@@ -535,8 +533,8 @@ export default function AskPageClient({
                     secondary={new Date(
                       conversation.updated_at
                     ).toLocaleDateString()}
-                    primaryTypographyProps={{ variant: 'body2' }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
+                    primaryTypographyProps={{ variant: "body2" }}
+                    secondaryTypographyProps={{ variant: "caption" }}
                   />
                 </ListItemButton>
               ))
