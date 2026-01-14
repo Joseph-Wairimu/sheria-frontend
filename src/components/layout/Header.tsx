@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 import {
   AppBar,
@@ -14,26 +13,35 @@ import {
   Divider,
   ListItemIcon,
   alpha,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Notifications,
   Settings,
   Logout,
   Person,
   Menu as MenuIcon,
-} from '@mui/icons-material';
-import { useState } from 'react';
-import { useAuthStore } from '@/src/store/useAuthStore';
+} from "@mui/icons-material";
+import { useState } from "react";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
+interface UserProfileData {
+  id: string;
+  username: string;
+  email: string;
+  avatar?: string;
+  role?: string;
+}
 interface HeaderProps {
   onMenuClick: () => void;
+  user: UserProfileData;
+  setUser: (user: UserProfileData) => void;
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header({ onMenuClick, user, setUser }: HeaderProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [notifAnchor, setNotifAnchor] = useState<null | HTMLElement>(null);
-  const { user, logout } = useAuthStore();
-
+  const router = useRouter();
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -47,20 +55,30 @@ export default function Header({ onMenuClick }: HeaderProps) {
     setNotifAnchor(null);
   };
 
-  const handleLogout = () => {
-    logout();
-    handleClose();
+  const handleLogout = async () => {
+    const logout = useAuthStore.getState().logout;
+
+    try {
+      await logout();
+      console.log("User logged out successfully");
+
+      handleClose?.();
+
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
-    <AppBar 
-      position="fixed" 
+    <AppBar
+      position="fixed"
       elevation={0}
-      sx={{ 
+      sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        bgcolor: 'white',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
+        bgcolor: "white",
+        borderBottom: "1px solid",
+        borderColor: "divider",
       }}
     >
       <Toolbar sx={{ py: 1 }}>
@@ -68,49 +86,49 @@ export default function Header({ onMenuClick }: HeaderProps) {
           color="inherit"
           edge="start"
           onClick={onMenuClick}
-          sx={{ 
-            mr: 2, 
-            display: { sm: 'none' },
-            color: 'text.primary',
+          sx={{
+            mr: 2,
+            display: { sm: "none" },
+            color: "text.primary",
           }}
         >
           <MenuIcon />
         </IconButton>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             sx={{
               width: 36,
               height: 36,
               borderRadius: 2,
-              background: 'linear-gradient(135deg, #2563eb 0%, #10b981 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              background: "linear-gradient(135deg, #2563eb 0%, #10b981 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               fontWeight: 800,
-              fontSize: '1.25rem',
-              color: 'white',
+              fontSize: "1.25rem",
+              color: "white",
             }}
           >
             S
           </Box>
           <Box>
-            <Typography 
-              variant="h6" 
-              component="div" 
-              sx={{ 
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
                 fontWeight: 800,
-                color: 'text.primary',
+                color: "text.primary",
                 lineHeight: 1.2,
               }}
             >
               Sheria
             </Typography>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: 'text.secondary',
-                fontSize: '0.7rem',
+            <Typography
+              variant="caption"
+              sx={{
+                color: "text.secondary",
+                fontSize: "0.7rem",
                 fontWeight: 600,
               }}
             >
@@ -121,14 +139,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton 
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <IconButton
             onClick={handleNotifications}
-            sx={{ 
-              color: 'text.primary',
-              '&:hover': {
-                bgcolor: alpha('#2563eb', 0.1),
-              }
+            sx={{
+              color: "text.primary",
+              "&:hover": {
+                bgcolor: alpha("#2563eb", 0.1),
+              },
             }}
           >
             <Badge badgeContent={3} color="error">
@@ -136,24 +154,24 @@ export default function Header({ onMenuClick }: HeaderProps) {
             </Badge>
           </IconButton>
 
-          <IconButton 
+          <IconButton
             onClick={handleMenu}
             sx={{
               ml: 1,
-              '&:hover': {
-                bgcolor: alpha('#2563eb', 0.1),
-              }
+              "&:hover": {
+                bgcolor: alpha("#2563eb", 0.1),
+              },
             }}
           >
-            <Avatar 
-              sx={{ 
-                width: 36, 
+            <Avatar
+              sx={{
+                width: 36,
                 height: 36,
-                bgcolor: 'primary.main',
+                bgcolor: "primary.main",
                 fontWeight: 700,
               }}
             >
-              {user?.name?.charAt(0) || 'J'}
+              {user?.username?.charAt(0) || " "}
             </Avatar>
           </IconButton>
 
@@ -161,8 +179,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             PaperProps={{
               elevation: 3,
               sx: {
@@ -174,10 +192,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
           >
             <Box sx={{ px: 2, py: 1.5 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                {user?.name || 'John Doe'}
+                {user?.username || "---"}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {user?.email || 'john@example.com'}
+                {user?.email || "---"}
               </Typography>
             </Box>
             <Divider />
@@ -206,8 +224,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
             anchorEl={notifAnchor}
             open={Boolean(notifAnchor)}
             onClose={handleClose}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            transformOrigin={{ horizontal: "right", vertical: "top" }}
+            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
             PaperProps={{
               elevation: 3,
               sx: {
