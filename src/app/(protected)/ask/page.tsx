@@ -1,49 +1,70 @@
-
-'use client';
-
-import { useState } from 'react';
 import {
   Box,
   Grid,
   Card,
   CardContent,
-  TextField,
-  MenuItem,
   Typography,
 } from '@mui/material';
 import { Language, Chat, Psychology, Speed } from '@mui/icons-material';
 import PageHeader from '@/src/components/common/PageHeader';
 import StatCard from '@/src/components/common/StatCard';
-
 import { SUPPORTED_LANGUAGES } from '@/src/lib/constants';
 import QuickQueries from './QuickQueries';
-import ChatInterface from './ChatInterface';
+import AskPageClient from './AskPageClient';
 
-export default function AskPage() {
-  const [language, setLanguage] = useState('en');
+async function getStats() {
+  try {
+    const response = await fetch(
+      'https://sheria-backend.greyteam.co.ke/rag/stats',
+      {
+        headers: {
+          'accept': 'application/json',
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return {
+      queriestoday: '0',
+      languages: '3',
+      avgResponseTime: '0',
+      accuracy: '0',
+    };
+  }
+}
+
+export default async function AskPage() {
+  const statsData = await getStats();
 
   const stats = [
     {
       title: 'Queries Today',
-      value: '2,847',
+      value: statsData.queriestoday || '--',
       icon: Chat,
       color: 'primary' as const,
     },
     {
       title: 'Languages',
-      value: '3',
+      value: statsData.languages || '--',
       icon: Language,
       color: 'secondary' as const,
     },
     {
       title: 'Avg Response Time',
-      value: '0.4s',
+      value: statsData.avgResponseTime || '--',
       icon: Speed,
       color: 'info' as const,
     },
     {
       title: 'Accuracy',
-      value: '96.5%',
+      value: statsData.accuracy || '--',
       icon: Psychology,
       color: 'success' as const,
     },
@@ -74,36 +95,25 @@ export default function AskPage() {
       </Grid>
 
       <Grid container spacing={3}>
-        {/* Sidebar */}
         <Grid item xs={12} md={3}>
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Settings
               </Typography>
-              <TextField
-                select
-                fullWidth
-                label="Language"
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-              >
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <MenuItem key={lang.code} value={lang.code}>
-                    {lang.flag} {lang.label}
-                  </MenuItem>
-                ))}
-              </TextField>
+              <AskPageClient 
+                supportedLanguages={SUPPORTED_LANGUAGES}
+                settingsOnly
+              />
             </CardContent>
           </Card>
 
-          <QuickQueries onQuerySelect={() => {}} />
+          <QuickQueries />
         </Grid>
 
-        {/* Chat Interface */}
         <Grid item xs={12} md={9}>
           <Box sx={{ height: 700 }}>
-            <ChatInterface />
+            <AskPageClient supportedLanguages={SUPPORTED_LANGUAGES} />
           </Box>
         </Grid>
       </Grid>

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useTransition } from 'react';
 import {
   Box,
   Card,
@@ -18,12 +18,18 @@ import {
   ListItemText,
   Divider,
   CircularProgress,
-} from "@mui/material";
-import { Send, SmartToy, Person, Menu, Add } from "@mui/icons-material";
+  MenuItem,
+} from '@mui/material';
+import { Send, SmartToy, Person, Menu, Add } from '@mui/icons-material';
+import {
+  fetchConversations,
+  fetchConversationMessages,
+  sendChatMessage,
+} from './actions';
 
 interface ChatMessage {
   id: string;
-  role: "user" | "assistant";
+  role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
   language?: string;
@@ -38,22 +44,33 @@ interface Conversation {
   updated_at: string;
 }
 
-export default function ChatInterface({
-  language = "en",
-}: {
-  language?: string;
-}) {
+interface SupportedLanguage {
+  code: string;
+  label: string;
+  flag: string;
+}
+
+interface AskPageClientProps {
+  supportedLanguages: SupportedLanguage[];
+  settingsOnly?: boolean;
+}
+
+export default function AskPageClient({
+  supportedLanguages,
+  settingsOnly = false,
+}: AskPageClientProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: "1",
-      role: "assistant",
+      id: '1',
+      role: 'assistant',
       content:
-        "Jambo! I'm Sheria Ask, your AI assistant. How can I help you today?",
+        'Jambo! I\'m Sheria Ask, your AI assistant. How can I help you today?',
       timestamp: new Date(),
-      language: "en",
+      language: 'en',
     },
   ]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
+  const [language, setLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -62,11 +79,12 @@ export default function ChatInterface({
     string | null
   >(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -77,77 +95,22 @@ export default function ChatInterface({
     scrollToBottom();
   }, [messages]);
 
-  const fetchConversations = async () => {
-    setConversationsLoading(true);
-    try {
-      const accessToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("access_token="))
-        ?.split("=")[1];
-
-      if (!accessToken) {
-        throw new Error("No access token found");
-      }
-
-      const response = await fetch(
-        "https://sheria-backend.greyteam.co.ke/rag/conversations/list",
-        {
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Fetched conversations:", data);
-      setConversations(data?.data || []);
-    } catch (error) {
-      console.error("Failed to fetch conversations:", error);
-    } finally {
-      setConversationsLoading(false);
-    }
-  };
-
   const handleDrawerOpen = () => {
     setDrawerOpen(true);
-    fetchConversations();
+    setConversationsLoading(true);
+    startTransition(async () => {
+      const convs = await fetchConversations();
+      setConversations(convs);
+      setConversationsLoading(false);
+    });
   };
 
-  const handleSelectConversation = async (conversationId: string) => {
+  const handleSelectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId);
     setDrawerOpen(false);
-
-    try {
-      const accessToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("access_token="))
-        ?.split("=")[1];
-
-      if (!accessToken) {
-        throw new Error("No access token found");
-      }
-
-      const response = await fetch(
-        `https://sheria-backend.greyteam.co.ke/rag/conversations/${conversationId}`,
-        {
-          headers: {
-            accept: "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const loadedMessages = data.messages.map((msg: any) => ({
+    startTransition(async () => {
+      const msgs = await fetchConversationMessages(conversationId);
+      const loadedMessages = msgs.map((msg: any) => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,
@@ -155,21 +118,19 @@ export default function ChatInterface({
         sources: msg.sources,
       }));
       setMessages(loadedMessages);
-    } catch (error) {
-      console.error("Failed to load conversation:", error);
-    }
+    });
   };
 
   const handleNewConversation = () => {
     setCurrentConversationId(null);
     setMessages([
       {
-        id: "1",
-        role: "assistant",
+        id: '1',
+        role: 'assistant',
         content:
-          "Jambo! I'm Sheria Ask, your AI assistant. How can I help you today?",
+          'Jambo! I\'m Sheria Ask, your AI assistant. How can I help you today?',
         timestamp: new Date(),
-        language: "en",
+        language: 'en',
       },
     ]);
     setDrawerOpen(false);
@@ -180,14 +141,14 @@ export default function ChatInterface({
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      role: "user",
+      role: 'user',
       content: input,
       timestamp: new Date(),
       language: language,
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    setInput('');
     setIsLoading(true);
 
     abortControllerRef.current = new AbortController();
@@ -195,8 +156,8 @@ export default function ChatInterface({
     const assistantMessageId = (Date.now() + 1).toString();
     const assistantMessage: ChatMessage = {
       id: assistantMessageId,
-      role: "assistant",
-      content: "",
+      role: 'assistant',
+      content: '',
       timestamp: new Date(),
       language: language,
       isStreaming: true,
@@ -205,45 +166,10 @@ export default function ChatInterface({
     setMessages((prev) => [...prev, assistantMessage]);
 
     try {
-      const accessToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("access_token="))
-        ?.split("=")[1];
-
-      if (!accessToken) {
-        throw new Error("No access token found");
-      }
-
-      const endpoint = currentConversationId
-        ? `https://sheria-backend.greyteam.co.ke/rag/conversations/chat/${currentConversationId}`
-        : "https://sheria-backend.greyteam.co.ke/rag/conversations/chat/new";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          accept: "application/json",
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          query: input,
-          conversation_id: currentConversationId || "string",
-        }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
+      const stream = await sendChatMessage(input, currentConversationId);
+      const reader = stream.getReader();
       const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error("Response body is not readable");
-      }
-
-      let fullContent = "";
+      let fullContent = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -273,17 +199,17 @@ export default function ChatInterface({
         scrollToBottom();
       }
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        console.log("Request was cancelled");
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request was cancelled');
       } else {
-        console.error("Streaming error:", error);
+        console.error('Streaming error:', error);
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === assistantMessageId
               ? {
                   ...msg,
                   content:
-                    "I encountered an error processing your request. Please try again.",
+                    'I encountered an error processing your request. Please try again.',
                   isStreaming: false,
                 }
               : msg
@@ -296,7 +222,7 @@ export default function ChatInterface({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -314,14 +240,32 @@ export default function ChatInterface({
     }
   };
 
+  if (settingsOnly) {
+    return (
+      <TextField
+        select
+        fullWidth
+        label="Language"
+        value={language}
+        onChange={(e) => setLanguage(e.target.value)}
+      >
+        {supportedLanguages.map((lang) => (
+          <MenuItem key={lang.code} value={lang.code}>
+            {lang.flag} {lang.label}
+          </MenuItem>
+        ))}
+      </TextField>
+    );
+  }
+
   return (
     <>
-      <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         <CardContent
           sx={{
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
             p: 0,
           }}
         >
@@ -329,8 +273,8 @@ export default function ChatInterface({
             sx={{
               p: 2,
               borderBottom: 1,
-              borderColor: "divider",
-              display: "flex",
+              borderColor: 'divider',
+              display: 'flex',
               gap: 1,
               flexShrink: 0,
             }}
@@ -355,9 +299,9 @@ export default function ChatInterface({
           <Box
             sx={{
               flex: 1,
-              overflow: "auto",
+              overflow: 'auto',
               p: 3,
-              bgcolor: "grey.50",
+              bgcolor: 'grey.50',
               minHeight: 0,
             }}
           >
@@ -365,32 +309,32 @@ export default function ChatInterface({
               <Box
                 key={message.id}
                 sx={{
-                  display: "flex",
+                  display: 'flex',
                   justifyContent:
-                    message.role === "user" ? "flex-end" : "flex-start",
+                    message.role === 'user' ? 'flex-end' : 'flex-start',
                   mb: 2,
                 }}
               >
                 <Box
                   sx={{
-                    display: "flex",
+                    display: 'flex',
                     gap: 1,
-                    maxWidth: "70%",
+                    maxWidth: '70%',
                     flexDirection:
-                      message.role === "user" ? "row-reverse" : "row",
-                    alignItems: "flex-end",
+                      message.role === 'user' ? 'row-reverse' : 'row',
+                    alignItems: 'flex-end',
                   }}
                 >
                   <Avatar
                     sx={{
                       bgcolor:
-                        message.role === "user" ? "grey.400" : "primary.main",
+                        message.role === 'user' ? 'grey.400' : 'primary.main',
                       width: 32,
                       height: 32,
                       flexShrink: 0,
                     }}
                   >
-                    {message.role === "user" ? (
+                    {message.role === 'user' ? (
                       <Person fontSize="small" />
                     ) : (
                       <SmartToy fontSize="small" />
@@ -402,22 +346,23 @@ export default function ChatInterface({
                     sx={{
                       p: 2,
                       bgcolor:
-                        message.role === "user"
-                          ? "primary.main"
-                          : "background.paper",
-                      color: message.role === "user" ? "white" : "text.primary",
-                      position: "relative",
+                        message.role === 'user'
+                          ? 'primary.main'
+                          : 'background.paper',
+                      color:
+                        message.role === 'user' ? 'white' : 'text.primary',
+                      position: 'relative',
                       minHeight: 44,
-                      display: "flex",
-                      alignItems: "center",
+                      display: 'flex',
+                      alignItems: 'center',
                     }}
                   >
-                    <Box sx={{ width: "100%" }}>
+                    <Box sx={{ width: '100%' }}>
                       <Typography
                         variant="body1"
                         sx={{
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
                         }}
                       >
                         {message.content}
@@ -425,12 +370,12 @@ export default function ChatInterface({
                           <Box
                             component="span"
                             sx={{
-                              display: "inline-block",
+                              display: 'inline-block',
                               ml: 0.5,
-                              animation: "blink 1s infinite",
-                              "@keyframes blink": {
-                                "0%, 49%": { opacity: 1 },
-                                "50%, 100%": { opacity: 0 },
+                              animation: 'blink 1s infinite',
+                              '@keyframes blink': {
+                                '0%, 49%': { opacity: 1 },
+                                '50%, 100%': { opacity: 0 },
                               },
                             }}
                           >
@@ -445,12 +390,12 @@ export default function ChatInterface({
                             mt: 2,
                             pt: 2,
                             borderTop: 1,
-                            borderColor: "divider",
+                            borderColor: 'divider',
                           }}
                         >
                           <Typography
                             variant="caption"
-                            sx={{ display: "block", mb: 1, opacity: 0.7 }}
+                            sx={{ display: 'block', mb: 1, opacity: 0.7 }}
                           >
                             Sources:
                           </Typography>
@@ -458,7 +403,7 @@ export default function ChatInterface({
                             <Typography
                               key={i}
                               variant="caption"
-                              sx={{ display: "block", opacity: 0.8 }}
+                              sx={{ display: 'block', opacity: 0.8 }}
                             >
                               • {source}
                             </Typography>
@@ -468,11 +413,11 @@ export default function ChatInterface({
 
                       <Typography
                         variant="caption"
-                        sx={{ display: "block", mt: 1, opacity: 0.7 }}
+                        sx={{ display: 'block', mt: 1, opacity: 0.7 }}
                       >
                         {isHydrated
                           ? message.timestamp.toLocaleTimeString()
-                          : ""}
+                          : ''}
                       </Typography>
                     </Box>
                   </Paper>
@@ -482,15 +427,14 @@ export default function ChatInterface({
             <div ref={messagesEndRef} />
           </Box>
 
-          {/* Input Area */}
           <Paper
             elevation={3}
             sx={{
               p: 2,
-              display: "flex",
+              display: 'flex',
               gap: 1,
               borderTop: 1,
-              borderColor: "divider",
+              borderColor: 'divider',
               flexShrink: 0,
             }}
           >
@@ -503,16 +447,16 @@ export default function ChatInterface({
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               variant="outlined"
-              disabled={isLoading}
+              disabled={isLoading || isPending}
             />
-            {isLoading ? (
+            {isLoading || isPending ? (
               <IconButton
                 color="error"
                 onClick={handleCancel}
                 sx={{
-                  bgcolor: "error.main",
-                  color: "white",
-                  "&:hover": { bgcolor: "error.dark" },
+                  bgcolor: 'error.main',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'error.dark' },
                 }}
                 title="Cancel request"
               >
@@ -524,10 +468,10 @@ export default function ChatInterface({
                 onClick={handleSend}
                 disabled={!input.trim()}
                 sx={{
-                  bgcolor: "primary.main",
-                  color: "white",
-                  "&:hover": { bgcolor: "primary.dark" },
-                  "&.Mui-disabled": { bgcolor: "action.disabledBackground" },
+                  bgcolor: 'primary.main',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  '&.Mui-disabled': { bgcolor: 'action.disabledBackground' },
                 }}
               >
                 <Send />
@@ -542,7 +486,7 @@ export default function ChatInterface({
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         sx={{
-          "& .MuiDrawer-paper": {
+          '& .MuiDrawer-paper': {
             width: 300,
             mt: 8,
           },
@@ -564,7 +508,7 @@ export default function ChatInterface({
         </Box>
         <Divider />
         {conversationsLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
             <CircularProgress size={24} />
           </Box>
         ) : (
@@ -574,8 +518,8 @@ export default function ChatInterface({
                 <ListItemText
                   primary="No conversations yet"
                   primaryTypographyProps={{
-                    variant: "body2",
-                    color: "textSecondary",
+                    variant: 'body2',
+                    color: 'textSecondary',
                   }}
                 />
               </ListItem>
@@ -591,8 +535,8 @@ export default function ChatInterface({
                     secondary={new Date(
                       conversation.updated_at
                     ).toLocaleDateString()}
-                    primaryTypographyProps={{ variant: "body2" }}
-                    secondaryTypographyProps={{ variant: "caption" }}
+                    primaryTypographyProps={{ variant: 'body2' }}
+                    secondaryTypographyProps={{ variant: 'caption' }}
                   />
                 </ListItemButton>
               ))

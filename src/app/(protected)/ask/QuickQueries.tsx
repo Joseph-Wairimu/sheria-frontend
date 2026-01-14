@@ -1,19 +1,10 @@
-
-'use client';
-
 import {
   Card,
   CardContent,
   Typography,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
+  List
 } from '@mui/material';
-
-interface QuickQueriesProps {
-  onQuerySelect: (query: string) => void;
-}
+import QuickQueriesClient from './QuickQueriesClient';
 
 const queries = [
   'Show recent documents',
@@ -24,7 +15,7 @@ const queries = [
   'Predict enrollment rates',
 ];
 
-export default function QuickQueries({ onQuerySelect }: QuickQueriesProps) {
+export default function QuickQueries() {
   return (
     <Card>
       <CardContent>
@@ -33,14 +24,7 @@ export default function QuickQueries({ onQuerySelect }: QuickQueriesProps) {
         </Typography>
         <List>
           {queries.map((query) => (
-            <ListItem key={query} disablePadding>
-              <ListItemButton onClick={() => onQuerySelect(query)}>
-                <ListItemText
-                  primary={query}
-                  primaryTypographyProps={{ variant: 'body2' }}
-                />
-              </ListItemButton>
-            </ListItem>
+            <QuickQueriesClient key={query} query={query} />
           ))}
         </List>
       </CardContent>
