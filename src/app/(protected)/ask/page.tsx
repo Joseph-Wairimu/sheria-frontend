@@ -103,7 +103,7 @@ export default function AskPage() {
         {/* Chat Interface */}
         <Grid item xs={12} md={9}>
           <Box sx={{ height: 700 }}>
-            <ChatInterface language={language} />
+            <ChatInterface />
           </Box>
         </Grid>
       </Grid>
