@@ -11,7 +11,7 @@ export async function sendChatMessage(
   conversationId: string;
 }> {
   const accessToken = await getAccessToken();
-  const AUTH_BASE_URL = env("NEXT_PUBLIC_API_URL");
+  const AUTH_BASE_URL = env("NEXT_PUBLIC_MODEL_API_URL");
   const endpoint = conversationId
     ? `${AUTH_BASE_URL}/rag/conversations/chat/${conversationId}`
     : `${AUTH_BASE_URL}/rag/conversations/chat/new`;
