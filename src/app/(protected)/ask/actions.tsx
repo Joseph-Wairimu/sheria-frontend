@@ -27,7 +27,7 @@ export async function getAccessToken() {
 
   return token;
 }
-const AUTH_BASE_URL = env("AUTH_BASE_URL");
+const AUTH_BASE_URL = env("MODEL_BASE_URL");
 export async function fetchConversations(): Promise<Conversation[]> {
   try {
     const accessToken = await getAccessToken();
