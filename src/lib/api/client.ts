@@ -1,3 +1,4 @@
+// src/lib/apiClient.ts   (or src/lib/api/client.ts)
 
 import axios from 'axios';
 
@@ -7,26 +8,25 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000,
+
+
+  withCredentials: true,
+
 });
 
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+if (typeof window !== 'undefined') {
+  apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+
+        
+        window.location.href = '/user-login'; 
+      }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
-);
+  );
+}
+
+export default apiClient; 

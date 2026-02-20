@@ -25,7 +25,7 @@ export default function SignUpPage() {
             <Box textAlign="center" sx={{ mt: 3 }}>
               <Typography variant="body2" color="text.secondary">
                 Already have an account?{' '}
-                <Link href="/login" color="primary" underline="hover">
+                <Link href="/user-login" color="primary" underline="hover">
                   Sign in
                 </Link>
               </Typography>

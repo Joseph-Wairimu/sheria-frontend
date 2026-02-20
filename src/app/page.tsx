@@ -50,7 +50,6 @@ export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  // Override body/html background so Tailwind's white gradient doesn't show through
   useEffect(() => {
     const prev = {
       bodyBg: document.body.style.background,
@@ -75,10 +74,11 @@ export default function LandingPage() {
 
   const handleGetStarted = () => {
     const token = getCookie("access_token");
+    console.log("Get Started clicked. Access token:", token);
     if (token && !isTokenExpired(token)) {
       router.push("/dashboard");
     } else {
-      router.push("/login");
+      router.push("/user-login");
     }
   };
 

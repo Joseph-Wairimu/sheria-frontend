@@ -4,11 +4,11 @@ import type { NextRequest } from "next/server";
 export function middleware(req: NextRequest) {
   const accessToken = req.cookies.get("access_token");
 
-  const isAuthRoute = req.nextUrl.pathname.startsWith("/login");
+  const isAuthRoute = req.nextUrl.pathname.startsWith("/user-login");
   const isProtectedRoute = req.nextUrl.pathname.startsWith("/dashboard");
 
   if (!accessToken && isProtectedRoute) {
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = new URL("/user-login", req.url);
     return NextResponse.redirect(loginUrl);
   }
 

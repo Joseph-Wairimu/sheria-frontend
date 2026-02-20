@@ -64,7 +64,7 @@ export default function Header({ onMenuClick, user, setUser }: HeaderProps) {
 
       handleClose?.();
 
-      router.push("/login");
+      router.push("/user-login");
     } catch (error) {
       console.error("Logout failed:", error);
     }

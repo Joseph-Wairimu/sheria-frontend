@@ -1,4 +1,3 @@
-// src/app/(auth)/login/GoogleSignInWrapper.tsx
 'use client';
 
 import { useState } from 'react';

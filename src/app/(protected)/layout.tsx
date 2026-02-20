@@ -47,14 +47,14 @@ export default async function ProtectedLayout({
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("access_token")?.value;
   if (!accessToken) {
-    redirect("/login");
+    redirect("/user-login");
   }
 
   const userProfile = await fetchUserProfile(accessToken);
   console.log("Fetched user profile:", userProfile);
 
   if (!userProfile?.details) {
-    redirect("/login");
+    redirect("/user-login");
   }
 
   return (
