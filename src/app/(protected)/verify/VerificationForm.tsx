@@ -1,30 +1,67 @@
-
-'use client';
+"use client";
 
 import {
   Box,
-  Card,
-  CardContent,
   TextField,
   Button,
   Typography,
   MenuItem,
-  alpha,
   Stack,
-  Paper,
-} from '@mui/material';
-import { Search, Shield } from '@mui/icons-material';
-import { useState } from 'react';
-import { DOCUMENT_TYPES } from '@/src/lib/constants';
+} from "@mui/material";
+import { Search, Shield } from "@mui/icons-material";
+import { useState } from "react";
+import { DOCUMENT_TYPES } from "@/src/lib/constants";
+
+const T = {
+  navy: "#070b14",
+  navy2: "#0d1424",
+  navy3: "#111827",
+  gold: "#d4a843",
+  goldLt: "#f0c96a",
+  emerald: "#10b981",
+  border: "rgba(255,255,255,0.07)",
+  text: "#e2e8f0",
+  muted: "#64748b",
+};
+
+const inputSx = {
+  "& .MuiOutlinedInput-root": {
+    background: T.navy3,
+    color: T.text,
+    borderRadius: "12px",
+    "& fieldset": { borderColor: T.border },
+    "&:hover fieldset": { borderColor: `${T.emerald}50` },
+    "&.Mui-focused fieldset": { borderColor: `${T.emerald}80` },
+    "& input::placeholder": { color: T.muted, opacity: 1 },
+  },
+  "& .MuiInputLabel-root": { color: T.muted },
+  "& .MuiInputLabel-root.Mui-focused": { color: T.emerald },
+  "& .MuiSelect-icon": { color: T.muted },
+};
+
+const menuPaperSx = {
+  background: T.navy2,
+  border: `1px solid ${T.border}`,
+  borderRadius: "12px",
+  color: T.text,
+  "& .MuiMenuItem-root": {
+    fontSize: "0.88rem",
+    "&:hover": { background: "rgba(255,255,255,0.05)" },
+    "&.Mui-selected": { background: `${T.emerald}14`, color: T.emerald },
+  },
+};
 
 interface VerificationFormProps {
   onVerify: (documentId: string, documentType: string) => void;
   loading: boolean;
 }
 
-export default function VerificationForm({ onVerify, loading }: VerificationFormProps) {
-  const [documentId, setDocumentId] = useState('');
-  const [documentType, setDocumentType] = useState('');
+export default function VerificationForm({
+  onVerify,
+  loading,
+}: VerificationFormProps) {
+  const [documentId, setDocumentId] = useState("");
+  const [documentType, setDocumentType] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,120 +69,204 @@ export default function VerificationForm({ onVerify, loading }: VerificationForm
   };
 
   return (
-    <Card
-      elevation={0}
+    <Box
       sx={{
-        border: '1px solid',
-        borderColor: 'divider',
-        borderRadius: 3,
+        background: T.navy2,
+        border: `1px solid ${T.border}`,
+        borderRadius: "16px",
+        overflow: "hidden",
       }}
     >
-      <CardContent sx={{ p: 3 }}>
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              bgcolor: alpha('#10b981', 0.1),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 12px',
-            }}
-          >
-            <Shield sx={{ fontSize: 32, color: '#10b981' }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-            Verify Document
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-            Fast & secure verification in seconds
-          </Typography>
-        </Box>
-
-        <Box component="form" onSubmit={handleSubmit}>
-          <Stack spacing={2.5}>
-            <TextField
-              fullWidth
-              label="Document ID or Number"
-              placeholder="e.g., 12345678"
-              value={documentId}
-              onChange={(e) => setDocumentId(e.target.value)}
-              required
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: alpha('#f8fafc', 0.8),
-                },
-              }}
-            />
-            <TextField
-              select
-              fullWidth
-              label="Document Type"
-              value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  bgcolor: alpha('#f8fafc', 0.8),
-                },
-              }}
-            >
-              <MenuItem value="">All Types (Auto-detect)</MenuItem>
-              {DOCUMENT_TYPES.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              size="large"
-              startIcon={<Search />}
-              disabled={!documentId || loading}
-              sx={{
-                py: 1.5,
-                borderRadius: 2.5,
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: `0 8px 24px ${alpha('#10b981', 0.3)}`,
-                },
-                '&:disabled': {
-                  background: alpha('#cbd5e1', 0.3),
-                },
-                transition: 'all 0.3s ease',
-              }}
-            >
-              {loading ? 'Verifying...' : 'Verify Now'}
-            </Button>
-          </Stack>
-        </Box>
-
-        <Paper
-          elevation={0}
+      {/* Emerald glow header */}
+      <Box
+        sx={{
+          position: "relative",
+          px: 3,
+          pt: 4,
+          pb: 3,
+          textAlign: "center",
+          borderBottom: `1px solid ${T.border}`,
+          overflow: "hidden",
+        }}
+      >
+        <Box
           sx={{
-            mt: 3,
-            p: 2,
-            bgcolor: alpha('#06b6d4', 0.05),
-            borderRadius: 2,
-            border: '1px solid',
-            borderColor: alpha('#06b6d4', 0.2),
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background:
+              "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(16,185,129,0.1), transparent)",
+          }}
+        />
+
+        {/* Shield icon */}
+        <Box
+          sx={{
+            width: 60,
+            height: 60,
+            borderRadius: "16px",
+            mx: "auto",
+            mb: 2,
+            background: `${T.emerald}15`,
+            border: `1px solid ${T.emerald}30`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            boxShadow: `0 8px 25px ${T.emerald}15`,
           }}
         >
-          <Typography variant="caption" sx={{ fontWeight: 600, color: '#0891b2', display: 'block', mb: 0.5 }}>
-            ⚡ Lightning Fast
+          <Shield sx={{ fontSize: 28, color: T.emerald }} />
+        </Box>
+
+        <Typography
+          sx={{
+            fontFamily: "Georgia, serif",
+            fontSize: "1.2rem",
+            fontWeight: 700,
+            color: "white",
+            mb: 0.5,
+          }}
+        >
+          Verify Document
+        </Typography>
+        <Typography sx={{ fontSize: "0.82rem", color: T.muted }}>
+          Fast & secure verification in seconds
+        </Typography>
+      </Box>
+
+      {/* Form */}
+      <Box component="form" onSubmit={handleSubmit} sx={{ px: 3, py: 3 }}>
+        <Stack spacing={2}>
+          <TextField
+            fullWidth
+            label="Document ID or Number"
+            placeholder="e.g., 12345678"
+            value={documentId}
+            onChange={(e) => setDocumentId(e.target.value)}
+            required
+            size="small"
+            sx={inputSx}
+          />
+          <TextField
+            select
+            fullWidth
+            label="Document Type"
+            value={documentType}
+            onChange={(e) => setDocumentType(e.target.value)}
+            size="small"
+            sx={inputSx}
+            SelectProps={{
+              MenuProps: { PaperProps: { elevation: 0, sx: menuPaperSx } },
+            }}
+          >
+            <MenuItem value="">All Types (Auto-detect)</MenuItem>
+            {DOCUMENT_TYPES.map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <Button
+            type="submit"
+            fullWidth
+            size="large"
+            startIcon={
+              loading ? (
+                <Box
+                  sx={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    border: `2px solid ${T.navy}40`,
+                    borderTopColor: T.navy,
+                    animation: "spin 0.8s linear infinite",
+                    "@keyframes spin": { to: { transform: "rotate(360deg)" } },
+                  }}
+                />
+              ) : (
+                <Search sx={{ fontSize: "18px !important" }} />
+              )
+            }
+            disabled={!documentId || loading}
+            sx={{
+              background:
+                documentId && !loading ? T.emerald : "rgba(255,255,255,0.04)",
+              color: documentId && !loading ? T.navy : T.muted,
+              fontWeight: 700,
+              fontSize: "0.95rem",
+              borderRadius: "12px",
+              py: 1.5,
+              textTransform: "none",
+              boxShadow:
+                documentId && !loading ? `0 8px 25px ${T.emerald}30` : "none",
+              border: `1px solid ${documentId && !loading ? `${T.emerald}50` : T.border}`,
+              transition: "all 0.25s ease",
+              "&:hover":
+                documentId && !loading
+                  ? {
+                      background: "#0ea472",
+                      transform: "translateY(-1px)",
+                      boxShadow: `0 10px 30px ${T.emerald}35`,
+                    }
+                  : {},
+              "&:disabled": {
+                background: "rgba(255,255,255,0.04)",
+                color: T.muted,
+                border: `1px solid ${T.border}`,
+              },
+            }}
+          >
+            {loading ? "Verifying…" : "Verify Now"}
+          </Button>
+        </Stack>
+      </Box>
+
+      {/* Speed badge */}
+      <Box
+        sx={{
+          mx: 3,
+          mb: 3,
+          px: 2,
+          py: 1.5,
+          background: "rgba(16,185,129,0.06)",
+          border: `1px solid ${T.emerald}20`,
+          borderRadius: "10px",
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+        }}
+      >
+        <Box
+          sx={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: T.emerald,
+            boxShadow: `0 0 6px ${T.emerald}80`,
+          }}
+        />
+        <Box>
+          <Typography
+            sx={{
+              fontSize: "0.72rem",
+              color: T.emerald,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            }}
+          >
+            Lightning Fast
           </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-            Average verification time: <strong>0.8 seconds</strong>
+          <Typography sx={{ fontSize: "0.75rem", color: T.muted }}>
+            Average verification:{" "}
+            <Box component="span" sx={{ color: T.text, fontWeight: 700 }}>
+              0.8 seconds
+            </Box>
           </Typography>
-        </Paper>
-      </CardContent>
-    </Card>
+        </Box>
+      </Box>
+    </Box>
   );
 }

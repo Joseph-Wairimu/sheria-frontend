@@ -371,7 +371,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* FOOTER */}
       <footer className="lp-footer">
         <div className="lp-footer-top">
           <div>
