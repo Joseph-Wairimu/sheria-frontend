@@ -76,7 +76,6 @@ export async function fetchConversationMessages(
     }
 
     const data = await response.json();
-    console.log("Fetched conversation messages:", data);
     return data.data || [];
   } catch (error) {
     console.error("Failed to load conversation:", error);

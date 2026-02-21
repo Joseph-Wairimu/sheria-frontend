@@ -29,6 +29,7 @@ export async function sendChatMessage(
     }),
   });
 
+
   if (!response.ok) {
     const errorText = await response.text().catch(() => "(no body)");
     throw new Error(`Backend error ${response.status}: ${errorText}`);

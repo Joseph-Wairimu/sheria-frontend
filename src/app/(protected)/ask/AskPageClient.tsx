@@ -97,6 +97,7 @@ export default function AskPageClient({
     setConversationsLoading(true);
     startTransition(async () => {
       const convs = await fetchConversations();
+      console.log("Fetched conversations:", convs);
       setConversations(convs);
       setConversationsLoading(false);
     });
@@ -110,11 +111,12 @@ export default function AskPageClient({
       console.log("Loaded messages for conversation:", msgs);
       const loadedMessages = msgs.map((msg: any) => ({
         id: msg.id,
-        role: msg?.content?.role,
-        content: msg?.content?.text,
+        role: msg?.role,
+        content: msg?.content,
         timestamp: new Date(msg.created_at),
         sources: msg.sources || [],
       }));
+      console.log("Transformed messages:", loadedMessages);
       setMessages(loadedMessages);
     });
   };
