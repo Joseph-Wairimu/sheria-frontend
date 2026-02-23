@@ -20,12 +20,27 @@ export async function getPresignedUrl(fileName: string): Promise<PresignedUrlRes
       },
       body: JSON.stringify({
         filename: fileName,
-        content_type: 'application/pdf',
+        content_type: getContentType(fileName), // ← fix hardcoded pdf
       }),
     }
   );
-  console.log('Presigned URL response status:', response.json());
 
-  if (!response.ok) throw new Error(`Failed to get presigned URL: ${response.statusText}`);
+  if (!response.ok) {
+    const errorText = await response.text(); // ← read as text first, not json
+    console.error("Presigned URL error:", response.status, errorText);
+    throw new Error(`Failed to get presigned URL: ${errorText}`);
+  }
+
   return response.json();
+}
+
+function getContentType(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  const types: Record<string, string> = {
+    pdf: 'application/pdf',
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+  };
+  return types[ext || ''] || 'application/octet-stream';
 }
