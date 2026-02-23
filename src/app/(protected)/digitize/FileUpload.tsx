@@ -23,10 +23,9 @@ import {
   Upload,
 } from "@mui/icons-material";
 import { formatFileSize } from "@/src/lib/utils/formatters";
-import {
-  uploadFilesInBulk,
-  UploadProgress,
-} from "@/src/lib/services/s3-upload.service";
+import { uploadFilesInBulk, UploadProgress } from "@/src/lib/services/s3-upload.client";
+import { getPresignedUrl } from "@/src/lib/services/s3-upload.server";
+
 
 const T = {
   navy: "#070b14",
@@ -139,6 +138,7 @@ export default function FileUpload({
             },
           }));
         },
+        getPresignedUrl
       );
       if (onUploadComplete && results.successful.length > 0) {
         onUploadComplete(
