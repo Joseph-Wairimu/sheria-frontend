@@ -196,7 +196,7 @@ export default function HomePage() {
         sx={{
           position: "relative",
           borderRadius: "20px",
-          overflow: "hidden",
+          overflow: "auto",
           mb: 3,
           p: { xs: 3, md: 5 },
           background: `linear-gradient(135deg, #0a1628 0%, #0d1f10 100%)`,

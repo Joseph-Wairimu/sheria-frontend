@@ -31,7 +31,7 @@ body:not(:has(.landing-root)) {
   background: var(--lp-navy) !important;
   color: var(--lp-text) !important;
   font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
-  overflow-x: hidden;
+  overflow-x: auto;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -248,7 +248,6 @@ body:not(:has(.landing-root)) {
 .lp-section-sub { font-size: 1.1rem; color: var(--lp-muted); line-height: 1.7; max-width: 520px; }
 .lp-divider { height: 1px; background: var(--lp-border); max-width: 1200px; margin: 0 auto; }
 
-/* FEATURES */
 .lp-features-grid {
   display: grid; grid-template-columns: repeat(2, 1fr);
   gap: 2px; background: var(--lp-border);
