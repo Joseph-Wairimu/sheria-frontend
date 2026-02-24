@@ -16,6 +16,7 @@ body:not(:has(.landing-root)) {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+    overflow: auto !important;
 }
 
 .landing-root {
